@@ -1,0 +1,25 @@
+{
+  "name": "projetosistema",
+  "version": "1.0.0",
+  "description": "Desenvolvimento de uma aplicação backend utilizando do MVC (REST-API)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mvc",
+    "backend",
+    "json",
+    "rest",
+    "api"
+  ],
+  "author": "Giovanni Oliveira",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mysql2": "^2.3.3"
+  }
+}
