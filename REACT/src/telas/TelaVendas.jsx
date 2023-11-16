@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 
 export default function TelaVendas(props) {
   const [produtos, setProdutos] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [totalVenda, setTotalVenda] = useState(0.0);
   const [error, setError] = useState(null);
   const [tabela, setTabela] = useState([]);
@@ -18,6 +19,8 @@ export default function TelaVendas(props) {
         console.error('Erro ao carregar produtos:', error);
       }
     };
+
+    
 
     carregarProdutos();
   }, []);
@@ -47,8 +50,14 @@ export default function TelaVendas(props) {
       const produtoExistente = tabela.find(item => item.codigo_Produto === codigo_Produto);
   
       if (produtoExistente) {
-        produtoExistente.quantidade += quantidade;
-        produtoExistente.valor += valor;
+        // Atualiza a quantidade e valor se o produto já existe
+        const novaTabela = tabela.map(item =>
+          item.codigo_Produto === codigo_Produto
+            ? { ...item, quantidade: item.quantidade + quantidade, valor: item.valor + valor }
+            : item
+        );
+  
+        setTabela(novaTabela);
       } else {
         const novoProduto = {
           codigo_Produto: codigo_Produto,
@@ -56,22 +65,20 @@ export default function TelaVendas(props) {
           quantidade: quantidade,
           valor: valor
         };
+  
         setTabela(prevTabela => [...prevTabela, novoProduto]);
       }
-  
-      setTotalVenda(prevTotal => prevTotal + valor);
   
       document.getElementById('codigo_Produto').value = '';
       document.getElementById('nomeProduto').value = '';
       document.getElementById('quantidade').value = '';
       document.getElementById('valor').value = '';
-  
-      // Chame calcularValor aqui para garantir que a quantidade seja atualizada automaticamente
-      calcularValor();
     } else {
       console.log('Por favor, preencha a quantidade e o valor corretamente.');
     }
   }
+  
+  
   
   // Adicione este efeito colateral para chamar atualizarTabela sempre que tabela for atualizada
   useEffect(() => {
@@ -89,8 +96,8 @@ export default function TelaVendas(props) {
 
   
   function atualizarTabela() {
-    // Remova esta linha, pois agora vamos usar ReactDOM.render para renderizar diretamente
-    // const listaProdutos = document.getElementById('lista-produtos');
+    const totalGeral = tabela.reduce((total, produto) => total + produto.valor, 0); setTotalVenda(totalGeral);
+    
   
     ReactDOM.render(
       <table className="table table-striped table-hover">
