@@ -19,6 +19,10 @@ export default function Menu(props) {
                             <NavDropdown.Divider />
                             <LinkContainer to="/funcionarios"><NavDropdown.Item>Funcionários</NavDropdown.Item></LinkContainer>
                             <NavDropdown.Divider />
+                            <LinkContainer to="/produtos"><NavDropdown.Item>Produtos</NavDropdown.Item></LinkContainer>
+                            <NavDropdown.Divider />
+                            <LinkContainer to="/vendas"><NavDropdown.Item>Vendas</NavDropdown.Item></LinkContainer>
+                            <NavDropdown.Divider />
                             <NavDropdown.Item onClick={()=>{
                                 setUsuario ({nome:"", logado:false});
                             }}>Logout</NavDropdown.Item>

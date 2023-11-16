@@ -1,6 +1,7 @@
 import express from 'express';
 import rotaCliente from "./Rotas/rotaCliente.js";
 import rotaFuncionario from "./Rotas/rotaFuncionario.js"
+import rotaProduto from "./Rotas/rotaProduto.js"
 import cors from 'cors';
 
 
@@ -15,6 +16,8 @@ app.use(cors({
 app.use(express.json());
 app.use('/clientes', rotaCliente);
 app.use('/funcionarios', rotaFuncionario);
+app.use('/produtos', rotaProduto);
+
 
 
 
