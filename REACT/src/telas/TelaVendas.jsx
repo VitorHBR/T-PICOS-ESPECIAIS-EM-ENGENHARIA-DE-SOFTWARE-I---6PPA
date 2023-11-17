@@ -1,188 +1,286 @@
-import React, { useEffect, useState } from 'react';
-import Pagina from "../templates/Pagina";
-import ReactDOM from 'react-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
+import Pagina from '../templates/Pagina';
 
-export default function TelaVendas(props) {
+const TelaVendas = () => {
   const [produtos, setProdutos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [totalVenda, setTotalVenda] = useState(0.0);
   const [error, setError] = useState(null);
   const [tabela, setTabela] = useState([]);
+  const [selectedClienteId, setSelectedClienteId] = useState('');
+  const [selectedPagamento, setSelectedPagamento] = useState('');
+
+  const codigoProdutoRef = useRef(null);
+  const nomeProdutoRef = useRef(null);
+  const quantidadeRef = useRef(null);
+  const valorRef = useRef(null);
 
   useEffect(() => {
-    const carregarProdutos = async () => {
+    const carregarDados = async () => {
       try {
-        const response = await fetch('http://localhost:4000/produtos');
-        const data = await response.json();
-        setProdutos(data);
+        const produtosResponse = await fetch('http://localhost:4000/produtos');
+        const clientesResponse = await fetch('http://localhost:4000/clientes');
+        const produtosData = await produtosResponse.json();
+        const clientesData = await clientesResponse.json();
+        setProdutos(produtosData);
+        setClientes(clientesData);
       } catch (error) {
-        console.error('Erro ao carregar produtos:', error);
+        console.error('Erro ao carregar dados:', error);
+        setError('Erro ao carregar dados');
       }
     };
 
-    
-
-    carregarProdutos();
+    carregarDados();
   }, []);
 
-  function calcularValor() {
-    const quantidade = parseFloat(document.getElementById('quantidade').value);
-    const selectedProdutoCodigo = document.getElementById('codigo_Produto').value;
+  const calcularValor = () => {
+    const quantidade = parseFloat(quantidadeRef.current.value);
+    const selectedProdutoCodigo = codigoProdutoRef.current.value;
 
-    const selectedProduto = produtos.find(produto => produto.codigo_Produto.toString() === selectedProdutoCodigo.toString());
+    const selectedProduto = produtos.find(
+      (produto) => produto.codigo_Produto.toString() === selectedProdutoCodigo.toString()
+    );
 
     if (selectedProduto) {
       const valor = quantidade * parseFloat(selectedProduto.preco);
-      document.getElementById("nomeProduto").value = selectedProduto.nome;
-      document.getElementById('valor').value = valor.toFixed(2);
+      nomeProdutoRef.current.value = selectedProduto.nome;
+      valorRef.current.value = valor.toFixed(2);
     } else {
-      console.log('Produto não encontrado');
+      console.error('Produto não encontrado');
     }
-  }
+  };
 
-  function adicionarProduto() {
-    const codigo_Produto = document.getElementById('codigo_Produto').value;
-    const nomeProduto = document.getElementById('nomeProduto').value;
-    const quantidade = parseFloat(document.getElementById('quantidade').value);
-    const valor = parseFloat(document.getElementById('valor').value);
-  
+  const adicionarProduto = () => {
+    const codigo_Produto = codigoProdutoRef.current.value;
+    const nomeProduto = nomeProdutoRef.current.value;
+    const quantidade = parseFloat(quantidadeRef.current.value);
+    const valor = parseFloat(valorRef.current.value);
+
     if (!isNaN(quantidade) && !isNaN(valor)) {
-      const produtoExistente = tabela.find(item => item.codigo_Produto === codigo_Produto);
-  
+      const produtoExistente = tabela.find((item) => item.codigo_Produto === codigo_Produto);
+
       if (produtoExistente) {
-        // Atualiza a quantidade e valor se o produto já existe
-        const novaTabela = tabela.map(item =>
+        const novaTabela = tabela.map((item) =>
           item.codigo_Produto === codigo_Produto
             ? { ...item, quantidade: item.quantidade + quantidade, valor: item.valor + valor }
             : item
         );
-  
+
         setTabela(novaTabela);
       } else {
         const novoProduto = {
-          codigo_Produto: codigo_Produto,
-          nomeProduto: nomeProduto,
-          quantidade: quantidade,
-          valor: valor
+          codigo_Produto,
+          nomeProduto,
+          quantidade,
+          valor,
         };
-  
-        setTabela(prevTabela => [...prevTabela, novoProduto]);
+
+        setTabela((prevTabela) => [...prevTabela, novoProduto]);
       }
-  
-      document.getElementById('codigo_Produto').value = '';
-      document.getElementById('nomeProduto').value = '';
-      document.getElementById('quantidade').value = '';
-      document.getElementById('valor').value = '';
+
+      limparCampos();
     } else {
-      console.log('Por favor, preencha a quantidade e o valor corretamente.');
+      console.error('Por favor, preencha a quantidade e o valor corretamente.');
     }
-  }
-  
-  
-  
-  // Adicione este efeito colateral para chamar atualizarTabela sempre que tabela for atualizada
+  };
+
+  const limparCampos = () => {
+    codigoProdutoRef.current.value = '';
+    nomeProdutoRef.current.value = '';
+    quantidadeRef.current.value = '';
+    valorRef.current.value = '';
+  };
+
   useEffect(() => {
     atualizarTabela();
   }, [tabela]);
 
-  function removerProduto(codigo_Produto) {
-    const novaTabela = tabela.filter(produto => produto.codigo_Produto !== codigo_Produto);
-    setTabela([...novaTabela]); // Atualiza a tabela
+  const removerProduto = (codigo_Produto) => {
+    const novaTabela = tabela.filter((produto) => produto.codigo_Produto !== codigo_Produto);
+    setTabela([...novaTabela]);
     atualizarTabela();
+  };
 
-    const totalGeral = novaTabela.reduce((total, produto) => total + produto.valor, 0);
+  const atualizarTabela = () => {
+    const totalGeral = tabela.reduce((total, produto) => total + produto.valor, 0);
     setTotalVenda(totalGeral);
-  }
+  };
 
-  
-  function atualizarTabela() {
-    const totalGeral = tabela.reduce((total, produto) => total + produto.valor, 0); setTotalVenda(totalGeral);
-    
-  
-    ReactDOM.render(
-      <table className="table table-striped table-hover">
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Produto</th>
-            <th>Quantidade</th>
-            <th>Valor</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tabela.map((produto, index) => (
-            <tr key={index}>
-              <td>{produto.codigo_Produto}</td>
-              <td>{produto.nomeProduto}</td>
-              <td>{produto.quantidade}</td>
-              <td>{produto.valor.toFixed(2)}</td>
-              <td>
-                <button type="button" className="btn btn-danger" onClick={() => removerProduto(produto.codigo_Produto)}>
-                  Remover
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>,
-      document.getElementById('lista-produtos')
-    );
-  }
+  const handleClienteChange = (event) => {
+    setSelectedClienteId(event.target.value);
+  };
+
+  const handlePagamentoChange = (event) => {
+    setSelectedPagamento(event.target.value);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    await finalizarVenda();
+  };
+
+  const finalizarVenda = async () => {
+    // Verifica se o cliente foi selecionado
+    if (selectedClienteId === '') {
+      setError('Selecione um cliente antes de finalizar a venda!');
+      return;
+    }
+
+    // Cria o objeto com os dados da venda
+    const vendaData = {
+      date: new Date().toISOString(),
+      total: totalVenda,
+      formapagamento: selectedPagamento,
+      cliente: selectedClienteId,
+      produtos: tabela.map((produto) => ({
+        produto: produto.codigo_Produto,
+        nomeProduto: produto.nomeProduto,
+        quantidade: produto.quantidade,
+        valor: produto.valor,
+      })),
+      funcionario: '1', // Você pode obter essa informação de algum lugar, ou ajustar conforme necessário
+    };
+
+    try {
+      // Envia os dados da venda para o backend
+      const response = await fetch('http://localhost:4000/vendas/finalizarVenda', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(vendaData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao finalizar a venda');
+      }
+
+      console.log('Venda finalizada com sucesso!');
+
+      // Reinicializa as variáveis
+      setTabela([]);
+      setTotalVenda(0.0);
+
+      // Limpa a tabela de produtos e o total
+      limparCampos();
+      setError(null); // Limpa mensagens de erro, se houverem
+    } catch (error) {
+      console.error('Erro ao finalizar a venda:', error.message);
+      setError('Erro ao finalizar a venda. Tente novamente.');
+    }
+  };
 
   return (
     <Pagina>
-      <div className="container">
+      <Container>
         <h1 className="mt-4">Controle de Vendas</h1>
 
         <div className="mt-4">
-          <form action="/venda/finalizarvenda" method="post">
-            <div className="row">
-              <div className="col-md-6">
-                <div className="form-group">
-                  <label htmlFor="codigo_Produto">Código do Produto:</label>
-                  <input type="text" className="form-control" id="codigo_Produto" />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="nome">Nome:</label>
-                  <input type="text" className="form-control" id="nomeProduto" readOnly />
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="form-group">
-                  <label htmlFor="quantidade">Quantidade:</label>
-                  <input type="number" className="form-control" id="quantidade"
-                    onChange={calcularValor}
-                  />
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="form-group">
-                  <label htmlFor="valor">Valor:</label>
-                  <input type="text" className="form-control" id="valor" readOnly />
-                </div>
-              </div>
-            </div>
+          <Form onSubmit={handleSubmit}>
+            <Row>
+              <Col md={6}>
+                <Form.Group controlId="codigo_Produto">
+                  <Form.Label>Código do Produto:</Form.Label>
+                  <Form.Control type="text" ref={codigoProdutoRef} />
+                </Form.Group>
+                <Form.Group controlId="nomeProduto">
+                  <Form.Label>Nome:</Form.Label>
+                  <Form.Control type="text" readOnly ref={nomeProdutoRef} />
+                </Form.Group>
+              </Col>
+              <Col md={3}>
+                <Form.Group controlId="quantidade">
+                  <Form.Label>Quantidade:</Form.Label>
+                  <Form.Control type="number" onChange={calcularValor} ref={quantidadeRef} />
+                </Form.Group>
+              </Col>
+              <Col md={3}>
+                <Form.Group controlId="valor">
+                  <Form.Label>Valor:</Form.Label>
+                  <Form.Control type="text" readOnly ref={valorRef} />
+                </Form.Group>
+              </Col>
+            </Row>
 
-            <button type="button" className="btn btn-primary mt-3" onClick={adicionarProduto}>
+            <Button variant="primary" className="mt-3" onClick={adicionarProduto}>
               Adicionar
-            </button>
+            </Button>
 
             <div className="table-responsive" style={{ marginTop: '15px' }}>
-              <table className="table table-striped table-hover">
-                <tbody id="lista-produtos"></tbody>
-              </table>
+              <Table striped hover>
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Valor</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tabela.map((produto, index) => (
+                    <tr key={index}>
+                      <td>{produto.codigo_Produto}</td>
+                      <td>{produto.nomeProduto}</td>
+                      <td>{produto.quantidade}</td>
+                      <td>{produto.valor.toFixed(2)}</td>
+                      <td>
+                        <Button variant="danger" onClick={() => removerProduto(produto.codigo_Produto)}>
+                          Remover
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
             </div>
 
-            <div>Total: {totalVenda.toFixed(2)}</div>
+            <Row>
+              <Col md={6}>
+                <Form.Group controlId="cliente">
+                  <Form.Label>Cliente:</Form.Label>
+                  <Form.Control as="select" onChange={handleClienteChange} value={selectedClienteId}>
+                    <option value="" disabled>
+                      Selecione um cliente
+                    </option>
+                    {clientes.map((cliente) => (
+                      <option key={cliente.id} value={cliente.id}>
+                        {cliente.nome}
+                      </option>
+                    ))}
+                  </Form.Control>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="pagamento">
+                  <Form.Label>Meio de Pagamento:</Form.Label>
+                  <Form.Control as="select" onChange={handlePagamentoChange} value={selectedPagamento}>
+                    <option value="" disabled>
+                      Selecione o meio de pagamento
+                    </option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="PIX">PIX</option>
+                    <option value="Cartao de Credito">Cartão de Crédito</option>
+                    <option value="Cartao de Debito">Cartão de Débito</option>
+                  </Form.Control>
+                </Form.Group>
+              </Col>
+            </Row>
 
-            <button type="submit" className="btn btn-success mt-3" >
+            <div className="text-right font-weight-bold mt-4">
+              Total: {totalVenda.toFixed(2)}
+            </div>
+
+            <Button variant="success" type="submit" className="mt-3" onClick={finalizarVenda}>
               Finalizar Venda
-            </button>
-          </form>
-          {error && <div className="alert alert-danger mt-3">{error}</div>}
+            </Button>
+          </Form>
+          {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
         </div>
-      </div>
+      </Container>
     </Pagina>
   );
-}
+};
+
+export default TelaVendas;
