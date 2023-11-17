@@ -10,6 +10,8 @@ const TelaVendas = () => {
   const [tabela, setTabela] = useState([]);
   const [selectedClienteId, setSelectedClienteId] = useState('');
   const [selectedPagamento, setSelectedPagamento] = useState('');
+  const [selectedClienteCPF, setSelectedClienteCPF] = useState('');
+  const [successAlert, setSuccessAlert] = useState(false);
 
   const codigoProdutoRef = useRef(null);
   const nomeProdutoRef = useRef(null);
@@ -33,6 +35,10 @@ const TelaVendas = () => {
 
     carregarDados();
   }, []);
+
+  useEffect(() => {
+    atualizarTabela();
+  }, [tabela]);
 
   const calcularValor = () => {
     const quantidade = parseFloat(quantidadeRef.current.value);
@@ -92,10 +98,6 @@ const TelaVendas = () => {
     valorRef.current.value = '';
   };
 
-  useEffect(() => {
-    atualizarTabela();
-  }, [tabela]);
-
   const removerProduto = (codigo_Produto) => {
     const novaTabela = tabela.filter((produto) => produto.codigo_Produto !== codigo_Produto);
     setTabela([...novaTabela]);
@@ -108,7 +110,16 @@ const TelaVendas = () => {
   };
 
   const handleClienteChange = (event) => {
-    setSelectedClienteId(event.target.value);
+    const selectedClienteId = event.target.value;
+    setSelectedClienteId(selectedClienteId);
+
+    const selectedClienteCPF = event.target.options[event.target.selectedIndex].getAttribute("data-cpf");
+
+    if (selectedClienteCPF) {
+      setSelectedClienteCPF(selectedClienteCPF.toString());
+    } else {
+      setSelectedClienteCPF('');
+    }
   };
 
   const handlePagamentoChange = (event) => {
@@ -117,33 +128,42 @@ const TelaVendas = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!selectedClienteId || !selectedPagamento || tabela.length === 0) {
+      setError('Preencha todos os campos antes de finalizar a venda.');
+      return;
+    }
+
     await finalizarVenda();
   };
 
   const finalizarVenda = async () => {
-    // Verifica se o cliente foi selecionado
     if (selectedClienteId === '') {
       setError('Selecione um cliente antes de finalizar a venda!');
       return;
     }
 
-    // Cria o objeto com os dados da venda
+    if (tabela.length === 0) {
+      setError('Adicione pelo menos um produto à venda antes de finalizar.');
+      return;
+    }
+
     const vendaData = {
       date: new Date().toISOString(),
       total: totalVenda,
       formapagamento: selectedPagamento,
       cliente: selectedClienteId,
+      cliente_cpf_Cliente: selectedClienteCPF,
       produtos: tabela.map((produto) => ({
         produto: produto.codigo_Produto,
         nomeProduto: produto.nomeProduto,
         quantidade: produto.quantidade,
         valor: produto.valor,
       })),
-      funcionario: '1', // Você pode obter essa informação de algum lugar, ou ajustar conforme necessário
+      funcionario: '1',
     };
 
     try {
-      // Envia os dados da venda para o backend
       const response = await fetch('http://localhost:4000/vendas/finalizarVenda', {
         method: 'POST',
         headers: {
@@ -156,15 +176,21 @@ const TelaVendas = () => {
         throw new Error('Erro ao finalizar a venda');
       }
 
-      console.log('Venda finalizada com sucesso!');
-
-      // Reinicializa as variáveis
       setTabela([]);
       setTotalVenda(0.0);
-
-      // Limpa a tabela de produtos e o total
       limparCampos();
-      setError(null); // Limpa mensagens de erro, se houverem
+      setError(null);
+      setSelectedClienteId('');
+      setSelectedPagamento('');
+
+      // Ativar o alerta de sucesso
+      setSuccessAlert(true);
+
+      // Desativar o alerta após alguns segundos (opcional)
+      setTimeout(() => {
+        setSuccessAlert(false);
+      }, 3000); // 3000 milissegundos = 3 segundos
+
     } catch (error) {
       console.error('Erro ao finalizar a venda:', error.message);
       setError('Erro ao finalizar a venda. Tente novamente.');
@@ -245,7 +271,7 @@ const TelaVendas = () => {
                       Selecione um cliente
                     </option>
                     {clientes.map((cliente) => (
-                      <option key={cliente.id} value={cliente.id}>
+                      <option key={cliente.id} value={cliente.id} data-cpf={cliente.cpf_Cliente}>
                         {cliente.nome}
                       </option>
                     ))}
@@ -272,11 +298,12 @@ const TelaVendas = () => {
               Total: {totalVenda.toFixed(2)}
             </div>
 
-            <Button variant="success" type="submit" className="mt-3" onClick={finalizarVenda}>
+            <Button variant="success" type="submit" className="mt-3">
               Finalizar Venda
             </Button>
           </Form>
           {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+          {successAlert && <Alert variant="success" className="mt-3">Venda finalizada com sucesso!</Alert>}
         </div>
       </Container>
     </Pagina>

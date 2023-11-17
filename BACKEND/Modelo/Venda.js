@@ -73,7 +73,7 @@ export default class Venda {
 
     async gravar() {
         const vendaBD = new VendaBD();
-        await vendaBD.incluir(this);
+        return await vendaBD.incluir(this);
     }
 
 }
