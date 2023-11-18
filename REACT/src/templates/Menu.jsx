@@ -29,6 +29,9 @@ export default function Menu(props) {
               <LinkContainer to="/vendas">
                 <NavDropdown.Item>Vendas</NavDropdown.Item>
               </LinkContainer>
+              <LinkContainer to="/receitas">
+                <NavDropdown.Item>Receitas</NavDropdown.Item>
+              </LinkContainer>
               <NavDropdown.Divider />
               <NavDropdown.Item
                 onClick={() => {

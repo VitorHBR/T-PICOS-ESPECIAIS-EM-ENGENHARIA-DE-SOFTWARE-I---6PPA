@@ -3,6 +3,7 @@ import rotaCliente from "./Rotas/rotaCliente.js";
 import rotaFuncionario from "./Rotas/rotaFuncionario.js"
 import rotaProduto from "./Rotas/rotaProduto.js"
 import rotaVenda   from "./Rotas/rotaVenda.js"
+import rotaReceita  from "./Rotas/rotaReceita.js"
 import cors from 'cors';
 
 
@@ -19,6 +20,7 @@ app.use('/clientes', rotaCliente);
 app.use('/funcionarios', rotaFuncionario);
 app.use('/produtos', rotaProduto);
 app.use('/vendas', rotaVenda);
+app.use('/receitas', rotaReceita);
 
 
 
