@@ -7,10 +7,49 @@ export function TelaLogin(props) {
   const [nomeUsuario, setNomeUsuario] = useState("");
 
   function fazLogin(e) {
-    setUsuario({
-      nome: nomeUsuario,
-      logado: true,
-    });
+    const url = "http://localhost:4000/login";
+    var email = document.getElementById("inputEmail").value;
+    var senha = document.getElementById("inputPassword").value;
+
+//console.log(email+" "+senha);
+  
+       try {
+          fetch(url, { method: "POST",headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },body: JSON.stringify({inputEmail: email, inputPassword: senha})}).then((resposta) => { //then == então     
+              return resposta.json();
+
+          }).then((dados) => {
+              console.log(dados);
+              if(dados.status==true)
+              {
+                setUsuario({
+                  nome: dados.nome,
+                  logado: true,
+                });
+              }
+
+              else
+              {
+                setUsuario({
+                  nome: '',
+                  logado: false,
+                });
+              }
+
+              alert(dados.mensagem);
+              
+          });
+      } catch (erro) {
+          console.log(erro);
+      }
+
+  // quando o componente for carregado pela primeira vez
+
+
+
+    
 
     e.preventDefault();
     e.stopPropagation();
@@ -25,7 +64,7 @@ export function TelaLogin(props) {
             <div className="text-center">
               <h1 className="h4 text-gray-900 mb-4">Bem-vindo!</h1>
             </div>
-            <Form onSubmit={fazLogin} className="user">
+            <Form onSubmit={fazLogin} className="user" method="post">
               <Form.Group className="mb-3">
                 <Form.Label>Endereço de Email</Form.Label>
                 <Form.Control type="email" id="inputEmail" name="inputEmail" placeholder="Digite seu email" />

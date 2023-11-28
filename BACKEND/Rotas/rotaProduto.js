@@ -1,6 +1,7 @@
 
 import { Router } from 'express';
 import ProdutoCTRL from '../Controle/produtoCTRL.js';
+import Autenticacao  from '../middleware/autenticacao.js';
 
 
 const rotaProduto = new Router();

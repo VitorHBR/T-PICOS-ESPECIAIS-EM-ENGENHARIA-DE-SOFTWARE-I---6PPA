@@ -4,6 +4,7 @@
 
 import { Router } from 'express';
 import ClienteCTRL from '../Controle/clienteCTRL.js';
+import Autenticacao  from '../middleware/autenticacao.js';
 // Router permite a criação de micro aplicaçãoes http
 
 const rotaCliente = new Router();

@@ -106,4 +106,14 @@ export default class Funcionario {
         return funcionarios;
     }
 
+    async autenticarFuncionario(usuario, senha){
+        console.log('cheguei aqui Model '+ usuario+' '+ senha);
+        const funcionarioBD = new FuncionarioBD();
+        const funcionarios = await funcionarioBD.autenticarFuncionario(usuario, senha);
+        
+        return funcionarios;
+    }
+    
 }
+
+

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import ReceitaCTRL from '../Controle/receitaCTRL.js';
+import Autenticacao  from '../middleware/autenticacao.js';
 
 
 const rotaReceita = new Router();

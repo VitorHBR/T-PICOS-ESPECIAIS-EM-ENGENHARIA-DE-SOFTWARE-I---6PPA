@@ -52,4 +52,20 @@ export default class FuncionarioBD{
         return listaFuncionarios;
     }
 
+
+    async autenticarFuncionario (usuario, senha) {
+        //console.log('cheguei aqui banco '+ usuario+' '+ senha);
+        const conexao = await conectar();
+        const sql = "SELECT * FROM `funcionario` WHERE `email` LIKE '"+usuario+"' AND `senha` LIKE '"+senha+"'";
+       
+        var row = await conexao.query(sql);
+        console.log(row[0]);
+        console.log(row.length);
+        if(row.length > 0)
+            return row[0];
+        else 
+            return null;
+    }
+
+
 }

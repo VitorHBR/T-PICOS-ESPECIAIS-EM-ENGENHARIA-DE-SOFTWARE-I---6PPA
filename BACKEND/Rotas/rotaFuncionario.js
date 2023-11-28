@@ -1,6 +1,7 @@
 
 import { Router } from 'express';
 import FuncionarioCTRL from '../Controle/funcionarioCTRL.js';
+import Autenticacao  from '../middleware/autenticacao.js';
 
 
 const rotaFuncionario = new Router();
