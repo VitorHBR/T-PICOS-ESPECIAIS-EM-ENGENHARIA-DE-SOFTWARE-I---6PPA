@@ -43,17 +43,23 @@ const TelaVendas = () => {
   const calcularValor = () => {
     const quantidade = parseFloat(quantidadeRef.current.value);
     const selectedProdutoCodigo = codigoProdutoRef.current.value;
-
+  
     const selectedProduto = produtos.find(
       (produto) => produto.codigo_Produto.toString() === selectedProdutoCodigo.toString()
     );
-
+  
     if (selectedProduto) {
       const valor = quantidade * parseFloat(selectedProduto.preco);
       nomeProdutoRef.current.value = selectedProduto.nome;
       valorRef.current.value = valor.toFixed(2);
     } else {
       console.error('Produto não encontrado');
+      setError('Produto não encontrado');
+  
+      // Exibir o erro por 2 segundos
+      setTimeout(() => {
+        setError(null);
+      }, 2000);
     }
   };
 
@@ -62,6 +68,18 @@ const TelaVendas = () => {
     const nomeProduto = nomeProdutoRef.current.value;
     const quantidade = parseFloat(quantidadeRef.current.value);
     const valor = parseFloat(valorRef.current.value);
+
+    if (!codigo_Produto || !nomeProduto || isNaN(quantidade) || isNaN(valor) || quantidade <= 0) {
+      console.error('Por favor, preencha todos os campos corretamente.');
+      setError('Por favor, preencha todos os campos corretamente e certifique-se de que a quantidade é maior que zero.');
+  
+      // Exibir o erro por 2 segundos
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
+  
+      return;
+    }
 
     if (!isNaN(quantidade) && !isNaN(valor)) {
       const produtoExistente = tabela.find((item) => item.codigo_Produto === codigo_Produto);
@@ -72,7 +90,7 @@ const TelaVendas = () => {
             ? { ...item, quantidade: item.quantidade + quantidade, valor: item.valor + valor }
             : item
         );
-
+    
         setTabela(novaTabela);
       } else {
         const novoProduto = {
@@ -142,14 +160,14 @@ const TelaVendas = () => {
       setError('Selecione um cliente antes de finalizar a venda!');
       return;
     }
-
+  
     if (tabela.length === 0) {
       setError('Adicione pelo menos um produto à venda antes de finalizar.');
       return;
     }
-
+  
     const vendaData = {
-      date: new Date().toISOString(),
+      date: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
       total: totalVenda,
       formapagamento: selectedPagamento,
       cliente: selectedClienteId,
@@ -162,7 +180,7 @@ const TelaVendas = () => {
       })),
       funcionario: '1',
     };
-
+  
     try {
       const response = await fetch('http://localhost:4000/vendas/finalizarVenda', {
         method: 'POST',
@@ -171,26 +189,26 @@ const TelaVendas = () => {
         },
         body: JSON.stringify(vendaData),
       });
-
+  
       if (!response.ok) {
         throw new Error('Erro ao finalizar a venda');
       }
-
+  
       setTabela([]);
       setTotalVenda(0.0);
       limparCampos();
       setError(null);
       setSelectedClienteId('');
       setSelectedPagamento('');
-
+  
       // Ativar o alerta de sucesso
       setSuccessAlert(true);
-
+  
       // Desativar o alerta após alguns segundos (opcional)
       setTimeout(() => {
         setSuccessAlert(false);
       }, 3000); // 3000 milissegundos = 3 segundos
-
+  
     } catch (error) {
       console.error('Erro ao finalizar a venda:', error.message);
       setError('Erro ao finalizar a venda. Tente novamente.');

@@ -2,59 +2,56 @@ import React, { useContext, useState } from "react";
 import { Container, Form, Button, Row, Col } from "react-bootstrap";
 import { Contexto } from "../contexto/ContextoGlobal";
 
+
 export function TelaLogin(props) {
   const { usuario, setUsuario } = useContext(Contexto);
   const [nomeUsuario, setNomeUsuario] = useState("");
 
   function fazLogin(e) {
-    const url = "http://localhost:4000/login";
-    var email = document.getElementById("inputEmail").value;
-    var senha = document.getElementById("inputPassword").value;
-
-//console.log(email+" "+senha);
-  
-       try {
-          fetch(url, { method: "POST",headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },body: JSON.stringify({inputEmail: email, inputPassword: senha})}).then((resposta) => { //then == então     
-              return resposta.json();
-
-          }).then((dados) => {
-              console.log(dados);
-              if(dados.status==true)
-              {
-                setUsuario({
-                  nome: dados.nome,
-                  logado: true,
-                });
-              }
-
-              else
-              {
-                setUsuario({
-                  nome: '',
-                  logado: false,
-                });
-              }
-
-              alert(dados.mensagem);
-              
-          });
-      } catch (erro) {
-          console.log(erro);
-      }
-
-  // quando o componente for carregado pela primeira vez
-
-
-
-    
-
     e.preventDefault();
     e.stopPropagation();
+  
+    const url = "http://localhost:4000/login";
+    const email = document.getElementById("inputEmail").value;
+    const senha = document.getElementById("inputPassword").value;
+  
+    try {
+      fetch(url, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ inputEmail: email, inputPassword: senha })
+      }).then((resposta) => resposta.json())
+        .then((dados) => {
+          console.log(dados);
+          if (dados.status === true) {
+            setUsuario({
+              nome: dados.nome,
+              logado: true,
+            });
+  
+            localStorage.setItem("usuario", JSON.stringify({
+              nome: dados.nome,
+              logado: true,
+            }));
+          } else {
+            setUsuario({
+              nome: '',
+              logado: false,
+            });
+  
+            localStorage.removeItem("usuario");
+          }
+  
+          alert(dados.mensagem);
+  
+        });
+    } catch (erro) {
+      console.log(erro);
+    }
   }
-
   return (
     <Container>
       <Row className="justify-content-center">
